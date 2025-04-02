@@ -1,0 +1,76 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Welcome, {{ user.name }}</h1>
+            <div class="nav-links">
+                <a href="/logout">Logout</a>
+                {% if user.role != 'admin' %}
+                <a href="/notifications">🔔 Notifications</a>
+                {% endif %}
+            </div>
+        </header>
+        
+        {% if user.role != 'admin' %}
+        <section class="create-post">
+            <h2>Create a Post</h2>
+            <form action="/create_post" method="POST">
+                <input type="text" name="title" placeholder="What's on your mind?" required>
+                <textarea name="content" placeholder="Share your thoughts..." required></textarea>
+                <button type="submit">Post</button>
+            </form>
+        </section>
+        {% endif %}
+        
+        <section class="posts">
+            <h2>Recent Posts</h2>
+            {% for post in posts %}
+                <article class="post">
+                    <h3>{{ post.title }}</h3>
+                    <p>{{ post.content }}</p>
+                    <p class="author"><em>By {{ post.author }}</em></p>
+                    
+                    {% if user.role != 'admin' %}
+                    <form action="/add_comment/{{ post.p_id }}" method="POST" class="comment-form">
+                        <input type="text" name="content" placeholder="Write a comment..." required>
+                        <button type="submit">Comment</button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if post.comments %}
+                    <div class="comments">
+                        <h4>Comments:</h4>
+                        {% for comment in post.comments %}
+                            <div class="comment">
+                                <p>{{ comment.content }}</p>
+                                <p class="author"><em>By {{ comment.author }}</em></p>
+                                {% if user.role == 'admin' %}
+                                    <form action="/delete_comment/{{ comment.c_id }}" method="POST">
+                                        <button type="submit" class="delete">Delete Comment</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.role == 'admin' %}
+                        <form action="/delete_post/{{ post.p_id }}" method="POST">
+                            <button type="submit" class="delete">Delete Post</button>
+                        </form>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </section>
+    </div>
+</body>
+</html>
